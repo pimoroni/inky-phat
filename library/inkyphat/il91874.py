@@ -27,6 +27,10 @@ _DATA_STOP = 0x11
 _DISPLAY_REFRESH = 0x12
 _DEEP_SLEEP = 0x07
 
+_PARTIAL_ENTER = 0x91
+_PARTIAL_EXIT = 0x91
+_PARTIAL_CONFIG = 0x90
+
 WHITE = 0
 BLACK = 1
 RED = 2
@@ -36,8 +40,13 @@ class IL91874:
     def __init__(self, resolution=(264, 176), cs_pin=0, dc_pin=22, reset_pin=27, busy_pin=17, h_flip=False, v_flip=False):
         self.palette = (WHITE, BLACK, RED)
         self.resolution = resolution
-        self.b_buf = [0] * ((resolution[0] * resolution[1]) / 8)
-        self.r_buf = [0] * ((resolution[0] * resolution[1]) / 8)
+        self.width, self.height = resolution
+
+        self.b_buf = [0] * ((self.width * self.height) / 8)
+        self.r_buf = [0] * ((self.width * self.height) / 8)
+
+        self.buffer = [[0] * self.width] * self.height
+
         self.dc_pin = dc_pin
         self.reset_pin = reset_pin
         self.busy_pin = busy_pin
@@ -77,6 +86,46 @@ class IL91874:
         self._send_command(0x26, [0x98, 0x98, 0x02, 0x5e, 0x5e, 0x02, 0x84, 0x68, 0x05, 0x45, 0x5e, 0x02, 0x44, 0x42, 0x01])
         self._send_command(0x27, [0x18, 0x18, 0x02, 0x1e, 0x1e, 0x02, 0x04, 0x28, 0x05, 0x05, 0x1e, 0x02, 0x04, 0x02, 0x01])
 
+        self.clear_partial_mode()
+
+    def clear_partial_mode(self):
+        self.update_x1 = 0
+        self.update_x2 = self.width - 1
+        self.update_y1 = 0
+        self.update_y2 = self.height - 1
+        self._send_command(_PARTIAL_EXIT)
+
+    def set_partial_mode(self, vr_st, vr_ed, hr_st, hr_ed):
+        self.update_x1 = hr_st
+        self.update_x2 = hr_ed
+        self.update_y1 = vr_st
+        self.update_y2 = vr_ed
+
+        hr_st /= 8
+        hr_ed /= 8
+
+        # vr_st - vr_ed = 0 - 212 - Actually horizontal on Inky pHAT
+        # hr_st - hr_ed = 0 - 12 - Actually vertical on Inky pHAT in 13 slices of 8 vertical pixels
+
+        self._send_command(_PARTIAL_CONFIG, [
+                                                     # D7   D6   D5   D4   D3   D2   D1   D0
+            0b00000000 | (hr_st & 0b11111) << 3,     #    HRST[7:3]             0    0    0
+            0b00000111 | (hr_ed & 0b11111) << 3,     #    HRED[7:3]             1    1    1
+            0b00000000 | (vr_st & 0b100000000) >> 8, # -    -    -    -    -    -    -   VRST[8]
+            0b00000000 | (vr_st & 0b11111111),       #                VRST[7:0]
+            0b00000000 | (vr_ed & 0b100000000) >> 8, # -    -    -    -    -    -    -   VRED[8]
+            0b00000000 | (vr_ed & 0b11111111),       #                VRED[7:0]
+            0b00000001,                              # -    -    -    -    -    -    -   PT_SCAN
+        ])
+
+        self._send_command(_PARTIAL_ENTER)
+
+        # HRST: Horizontal start channel bank: 00h to 13h (0 to 19)
+        # HRED: Horizontal end channel bank: 00h to 13h (0 to 19), HRED must be greater than HRST
+        # VRST: Vertical start line: 000h to 127h (0 to 295)
+        # VRED: Vertical end line: 000h to 127h (0 to 295)
+        # PT_SCAN: 0 = Only in partial window, 1 = inside and outside of partial window
+
     def set_border(self, border):
         cmd = 0b00000111
 
@@ -105,6 +154,50 @@ class IL91874:
 
         self._send_command(_DISPLAY_REFRESH)
         self._busy_wait()
+
+    def _update(self):
+        x1, x2 = self.update_x1, self.update_x2 + 1
+        y1, y2 = self.update_y1, self.update_y2 + 1
+        width = x2 - x1
+        height = y2 - y1
+
+        buf_black = [0] * ((width * height) / 8)
+        buf_red = [0] * ((width * height) / 8)
+
+        print(width, height, len(buf_black), len(buf_red))
+        print(len(self.buffer), len(self.buffer[0]))
+
+        for x in range(x1, x2):
+            for y in range(y1, y2):
+                pixel = self.buffer[y][x]
+                buf_off = ((y - y1) * (width // 8)) + ((x - x1) // 8)
+                bit_off = (x - x1) % 8
+                mask = 0b11111111 ^ (0b10000000 >> bit_off)
+
+                # clear pixel in both buffers first
+                buf_black[buf_off] &= mask
+                buf_red[buf_off] &= mask
+
+                if pixel == BLACK:
+                    buf_black[buf_off] |= ~mask
+
+                if pixel == RED:
+                    buf_red[buf_off] |= ~mask
+
+        # start black data transmission
+        self._send_command(_DATA_START_TRANSMISSION_1)
+        self._send_data(buf_black)
+
+        # start red data transmission
+        self._send_command(_DATA_START_TRANSMISSION_2)
+        self._send_data(buf_red)
+
+        self._send_command(_DISPLAY_REFRESH)
+        self._busy_wait()
+
+    def _set_pixel(self, x, y, v):
+        if v in self.palette:
+            self.buffer[y][x] = self.palette[v]
 
     def set_pixel(self, x, y, v):
         if self.v_flip:
