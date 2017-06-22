@@ -1,22 +1,24 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-CITY = "Sheffield"
-COUNTRYCODE = "GB"
-WARNING_TEMP = 25.0
-
 import glob
-from PIL import Image, ImageFont
-import time
 import json
+import time
 import urllib
-
-import inkyphat
+from PIL import Image, ImageFont
 
 try:
     import requests
 except ImportError:
     exit("This script requires the requests module\nInstall with: sudo pip install requests")
+
+import inkyphat
+
+
+CITY = "Sheffield"
+COUNTRYCODE = "GB"
+WARNING_TEMP = 25.0
+
 
 def get_location():
     res = requests.get('http://ipinfo.io')
@@ -122,4 +124,3 @@ else:
 
 # And show it!
 inkyphat.show()
-

@@ -1,16 +1,15 @@
 #!/usr/bin/env python
 
-import inkyphat
 from PIL import ImageFont
 
+import inkyphat
 
-font_file = inkyphat.fonts["FredokaOne-Regular"] # "/usr/share/fonts/truetype/freefont/FreeSans.ttf"
 
+font_file = inkyphat.fonts.FredokaOne
 inkyphat.arc((0, 0, 212, 104), 0, 180, 2)
 
 top = 0
 left = 0
-
 offset_left = 0
 
 for font_size in (10, 12, 14, 16, 18, 20):
@@ -44,4 +43,3 @@ for font_size in (30, 32, 34):
     left = max(left, offset_left + width)
 
 inkyphat.show()
-

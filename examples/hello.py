@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 
-from PIL import ImageFont
 import sys
 
+from PIL import ImageFont
+
 import inkyphat
+
 
 print("""Inky pHAT: Hello... my name is:
 

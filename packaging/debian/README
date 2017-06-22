@@ -1,0 +1,6 @@
+README
+
+Inky pHAT is a small 212x104 e-paper display, perfect for name badges and quick status notification.
+
+Learn more: https://shop.pimoroni.com/products/inky-phat
+For examples run: `curl https://get.pimoroni.com/inkyphat | bash`

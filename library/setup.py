@@ -52,5 +52,5 @@ setup(
     packages        = ['inkyphat'],
     package_data    = {'inkyphat': ['inkyphat/fonts']},
     include_package_data = True,
-    install_requires= ['spidev', 'RPi.GPIO']
+    install_requires= ['spidev', 'RPi.GPIO', 'numpy', 'pillow']
 )
