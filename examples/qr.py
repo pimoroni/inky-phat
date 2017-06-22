@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import sys
+
 import qrcode
 import inkyphat
 
@@ -7,14 +9,19 @@ print("""Inky pHAT: QR Code
 
 Display a QR Code on Inky pHAT!
 
-""")
+Usage: {} <your message>
+
+""".format(sys.argv[0]))
 
 
 # Max length is 152
-TEXT = """In the old #BILGETANK we'll keep you in the know,
+text = """In the old #BILGETANK we'll keep you in the know,
 In the old #BILGETANK we'll fix your techie woes.
 
 https://www.youtube.com/pimoroniltd"""
+
+if len(sys.argv) > 1:
+    text = sys.argv[1]
 
 class InkyQR(qrcode.image.base.BaseImage):
     def new_image(self, **kwargs):
@@ -53,7 +60,7 @@ qr = qrcode.QRCode(
         image_factory=InkyQR
 )
 
-qr.add_data(TEXT)
+qr.add_data(text)
 qr.make(fit=True)
 qr.make_image()
 
