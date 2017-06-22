@@ -8,7 +8,7 @@ import calendar
 
 import inkyphat
 inkyphat.set_border(inkyphat.BLACK)
-inkyphat.set_rotation(180)
+#inkyphat.set_rotation(180)
 
 print("""Inky pHAT: Calendar
 
