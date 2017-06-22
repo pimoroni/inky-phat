@@ -43,10 +43,6 @@ class IL91874:
         self.resolution = resolution
         self.width, self.height = resolution
 
-        self.b_buf = [0] * ((self.width * self.height) / 8)
-        self.r_buf = [0] * ((self.width * self.height) / 8)
-
-        #self.buffer = [[0] * self.width] * self.height
         self.buffer = numpy.zeros((self.height, self.width), dtype=numpy.uint8)
 
         self.dc_pin = dc_pin
@@ -100,14 +96,26 @@ class IL91874:
     def set_partial_mode(self, vr_st, vr_ed, hr_st, hr_ed):
         self.update_x1 = hr_st
         self.update_x2 = hr_ed
-        self.update_y1 = vr_st
-        self.update_y2 = vr_ed
+        self.update_y1 = (vr_st // 8) * 8 # Snap update region to byte boundary
+        self.update_y2 = (vr_ed // 8) * 8
 
         hr_ed -= 1
         vr_ed -= 1
 
-        hr_st /= 8
-        hr_ed /= 8
+        hr_st //= 8
+        hr_ed //= 8
+
+        if self.v_flip:
+            _hr_st = ((self.width - 1) // 8) - hr_ed
+            _hr_ed = ((self.width - 1) // 8) - hr_st
+            hr_st = _hr_st
+            hr_ed = _hr_ed
+
+        if self.h_flip:
+            _vr_st = self.height - 1 - vr_ed
+            _vr_ed = self.height - 1 - vr_st
+            vr_st = _vr_st
+            vr_ed = _vr_ed
 
         # vr_st - vr_ed = 0 - 212 - Actually horizontal on Inky pHAT
         # hr_st - hr_ed = 0 - 12 - Actually vertical on Inky pHAT in 13 slices of 8 vertical pixels
@@ -148,81 +156,22 @@ class IL91874:
     def set_palette(self, palette):
         self.palette = palette
 
-    def _update(self):
-        # start black data transmission
-        self._send_command(_DATA_START_TRANSMISSION_1)
-        self._send_data(self.b_buf)
-
-        # start red data transmission
-        self._send_command(_DATA_START_TRANSMISSION_2)
-        self._send_data(self.r_buf)
-
-        self._send_command(_DISPLAY_REFRESH)
-        self._busy_wait()
-
     def update(self):
         x1, x2 = self.update_x1, self.update_x2
         y1, y2 = self.update_y1, self.update_y2
 
-        buf = self.buffer
+        region = self.buffer[y1:y2, x1:x2]
 
         if self.v_flip:
-            buf = numpy.fliplr(buf)
+            region = numpy.fliplr(region)
 
         if self.h_flip:
-            buf = numpy.flipud(buf)
+            region = numpy.flipud(region)
 
-        region = buf[y1:y2, x1:x2]
-
-        #print(region)
 
         buf_red = numpy.packbits(numpy.where(region == RED, 1, 0)).tolist()
         buf_black = numpy.packbits(numpy.where(region == BLACK, 1, 0)).tolist()
 
-        #print(len(buf_red), buf_red)
-        #print(len(buf_black), buf_black)
-
-        # start black data transmission
-        self._send_command(_DATA_START_TRANSMISSION_1)
-        self._send_data(buf_black)
-
-        # start red data transmission
-        self._send_command(_DATA_START_TRANSMISSION_2)
-        self._send_data(buf_red)
-
-        del buf
-
-        self._send_command(_DISPLAY_REFRESH)
-        self._busy_wait()
-
-    def __update(self):
-        x1, x2 = self.update_x1, self.update_x2 + 1
-        y1, y2 = self.update_y1, self.update_y2 + 1
-        width = x2 - x1
-        height = y2 - y1
-
-        buf_black = [0] * ((width * height) / 8)
-        buf_red = [0] * ((width * height) / 8)
-
-        print(width, height, len(buf_black), len(buf_red))
-        print(len(self.buffer), len(self.buffer[0]))
-
-        for x in range(x1, x2):
-            for y in range(y1, y2):
-                pixel = self.buffer[y][x]
-                buf_off = ((y - y1) * (width // 8)) + ((x - x1) // 8)
-                bit_off = (x - x1) % 8
-                mask = 0b11111111 ^ (0b10000000 >> bit_off)
-
-                # clear pixel in both buffers first
-                buf_black[buf_off] &= mask
-                buf_red[buf_off] &= mask
-
-                if pixel == BLACK:
-                    buf_black[buf_off] |= ~mask
-
-                if pixel == RED:
-                    buf_red[buf_off] |= ~mask
 
         # start black data transmission
         self._send_command(_DATA_START_TRANSMISSION_1)
@@ -238,29 +187,6 @@ class IL91874:
     def set_pixel(self, x, y, v):
         if v in self.palette:
             self.buffer[y][x] = self.palette[v]
-
-    def _set_pixel(self, x, y, v):
-        if self.v_flip:
-            x = self.resolution[0] - 1 - x
-
-        if self.h_flip:
-            y = self.resolution[1] - 1 - y
-
-        buf_off = (y * (self.resolution[0] // 8)) + (x // 8)
-        bit_off = x % 8
-        mask = 0b11111111 ^ (0b10000000 >> bit_off)
-
-        # clear pixel in both buffers first
-        self.b_buf[buf_off] &= mask
-        self.r_buf[buf_off] &= mask
-
-        if v in self.palette:
-
-            if(self.palette[v] == BLACK):
-                self.b_buf[buf_off] |= ~mask
-
-            if(self.palette[v] == RED):
-                self.r_buf[buf_off] |= ~mask
 
     def _busy_wait(self):
         """Wait for the e-paper driver to be ready to receive commands/data.
