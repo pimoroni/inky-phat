@@ -32,6 +32,8 @@ _PARTIAL_ENTER = 0x91
 _PARTIAL_EXIT = 0x92
 _PARTIAL_CONFIG = 0x90
 
+_POWER_SAVE = 0xe3
+
 WHITE = 0
 BLACK = 1
 RED = 2
@@ -94,10 +96,10 @@ class IL91874:
         self._send_command(_PARTIAL_EXIT)
 
     def set_partial_mode(self, vr_st, vr_ed, hr_st, hr_ed):
-        self.update_x1 = hr_st
-        self.update_x2 = hr_ed
-        self.update_y1 = (vr_st // 8) * 8 # Snap update region to byte boundary
-        self.update_y2 = (vr_ed // 8) * 8
+        self.update_x1 = (hr_st // 8) * 8 # Snap update region to byte boundary
+        self.update_x2 = (hr_ed // 8) * 8
+        self.update_y1 = vr_st
+        self.update_y2 = vr_ed
 
         hr_ed -= 1
         vr_ed -= 1
