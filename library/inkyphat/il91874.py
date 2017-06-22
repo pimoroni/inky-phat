@@ -4,6 +4,7 @@
 import spidev
 import RPi.GPIO as GPIO
 import time
+import numpy
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
@@ -28,7 +29,7 @@ _DISPLAY_REFRESH = 0x12
 _DEEP_SLEEP = 0x07
 
 _PARTIAL_ENTER = 0x91
-_PARTIAL_EXIT = 0x91
+_PARTIAL_EXIT = 0x92
 _PARTIAL_CONFIG = 0x90
 
 WHITE = 0
@@ -45,7 +46,8 @@ class IL91874:
         self.b_buf = [0] * ((self.width * self.height) / 8)
         self.r_buf = [0] * ((self.width * self.height) / 8)
 
-        self.buffer = [[0] * self.width] * self.height
+        #self.buffer = [[0] * self.width] * self.height
+        self.buffer = numpy.zeros((self.height, self.width), dtype=numpy.uint8)
 
         self.dc_pin = dc_pin
         self.reset_pin = reset_pin
@@ -90,9 +92,9 @@ class IL91874:
 
     def clear_partial_mode(self):
         self.update_x1 = 0
-        self.update_x2 = self.width - 1
+        self.update_x2 = self.width
         self.update_y1 = 0
-        self.update_y2 = self.height - 1
+        self.update_y2 = self.height
         self._send_command(_PARTIAL_EXIT)
 
     def set_partial_mode(self, vr_st, vr_ed, hr_st, hr_ed):
@@ -100,6 +102,9 @@ class IL91874:
         self.update_x2 = hr_ed
         self.update_y1 = vr_st
         self.update_y2 = vr_ed
+
+        hr_ed -= 1
+        vr_ed -= 1
 
         hr_st /= 8
         hr_ed /= 8
@@ -143,7 +148,7 @@ class IL91874:
     def set_palette(self, palette):
         self.palette = palette
 
-    def update(self):
+    def _update(self):
         # start black data transmission
         self._send_command(_DATA_START_TRANSMISSION_1)
         self._send_data(self.b_buf)
@@ -155,7 +160,42 @@ class IL91874:
         self._send_command(_DISPLAY_REFRESH)
         self._busy_wait()
 
-    def _update(self):
+    def update(self):
+        x1, x2 = self.update_x1, self.update_x2
+        y1, y2 = self.update_y1, self.update_y2
+
+        buf = self.buffer
+
+        if self.v_flip:
+            buf = numpy.fliplr(buf)
+
+        if self.h_flip:
+            buf = numpy.flipud(buf)
+
+        region = buf[y1:y2, x1:x2]
+
+        #print(region)
+
+        buf_red = numpy.packbits(numpy.where(region == RED, 1, 0)).tolist()
+        buf_black = numpy.packbits(numpy.where(region == BLACK, 1, 0)).tolist()
+
+        #print(len(buf_red), buf_red)
+        #print(len(buf_black), buf_black)
+
+        # start black data transmission
+        self._send_command(_DATA_START_TRANSMISSION_1)
+        self._send_data(buf_black)
+
+        # start red data transmission
+        self._send_command(_DATA_START_TRANSMISSION_2)
+        self._send_data(buf_red)
+
+        del buf
+
+        self._send_command(_DISPLAY_REFRESH)
+        self._busy_wait()
+
+    def __update(self):
         x1, x2 = self.update_x1, self.update_x2 + 1
         y1, y2 = self.update_y1, self.update_y2 + 1
         width = x2 - x1
@@ -195,11 +235,11 @@ class IL91874:
         self._send_command(_DISPLAY_REFRESH)
         self._busy_wait()
 
-    def _set_pixel(self, x, y, v):
+    def set_pixel(self, x, y, v):
         if v in self.palette:
             self.buffer[y][x] = self.palette[v]
 
-    def set_pixel(self, x, y, v):
+    def _set_pixel(self, x, y, v):
         if self.v_flip:
             x = self.resolution[0] - 1 - x
 
