@@ -1,10 +1,25 @@
 #
 # Python library to support the black/red IL91874 e-paper driver
 #
-import spidev
-import RPi.GPIO as GPIO
+
+import sys
 import time
-import numpy
+
+try:
+    import spidev
+except ImportError:
+    sys.exit("This library requires the spidev module\nInstall with: sudo pip install spidev")
+
+try:
+    import RPi.GPIO as GPIO
+except ImportError:
+    sys.exit("This library requires the RPi.GPIO module\nInstall with: sudo pip install RPi.GPIO")
+
+try:
+    import numpy
+except ImportError:
+    sys.exit("This library requires the numpy module\nInstall with: sudo pip install numpy")
+
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)

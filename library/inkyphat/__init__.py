@@ -1,8 +1,13 @@
-__version__ = "1.0.0"
-
 from . import il91874
 from . import fonts
-from PIL import Image, ImageFont, ImageDraw
+
+try:
+    from PIL import Image, ImageFont, ImageDraw
+except ImportError:
+    exit("This script requires the pillow module\nInstall with: sudo pip install pillow")
+
+
+__version__ = "0.0.1"
 
 WHITE = 0
 BLACK = 1
