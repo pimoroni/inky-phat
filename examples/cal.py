@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from PIL import Image, ImageFont
 import datetime
 import time
 import calendar
 
+from PIL import Image, ImageFont
+
 import inkyphat
-inkyphat.set_border(inkyphat.BLACK)
+
 
 print("""Inky pHAT: Calendar
 
@@ -17,6 +18,8 @@ This example uses a sprite sheet of numbers and month names which are
 composited over the background in a couple of different ways.
 
 """)
+
+inkyphat.set_border(inkyphat.BLACK)
 
 # Load our sprite sheet and prepare a mask
 text = Image.open("resources/calendar.png")
@@ -155,4 +158,3 @@ for row, week in enumerate(dates):
 
 # And show it!
 inkyphat.show()
-
