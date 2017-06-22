@@ -8,6 +8,7 @@ import calendar
 
 import inkyphat
 inkyphat.set_border(inkyphat.BLACK)
+inkyphat.set_rotation(180)
 
 print("""Inky pHAT: Calendar
 
@@ -86,8 +87,8 @@ month_w = 23
 month_h = 9
 
 # Figure out where the month is in the spritesheet
-month_col = now.month % months_cols
-month_row = now.month / months_cols
+month_col = (now.month - 1) % months_cols
+month_row = (now.month - 1) / months_cols
 
 # Convert that location to usable X/Y coordinates
 month_x = months_x + (month_col * month_w)
@@ -105,6 +106,8 @@ inkyphat.paste(month, (monthyear_x, cal_y + 4), month_mask)
 
 # Print the year right below the month
 print_number((monthyear_x, cal_y + 5 + col_h), now.year, inkyphat.WHITE)
+
+
 
 # Draw the vertical lines which separate the columns
 # and also draw the day names into the table header
@@ -155,4 +158,3 @@ for row, week in enumerate(dates):
 
 # And show it!
 inkyphat.show()
-
