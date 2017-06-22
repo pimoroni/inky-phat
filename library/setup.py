@@ -42,15 +42,15 @@ setup(
     version         = '0.0.1',
     author          = 'Philip Howard',
     author_email    = 'phil@pimoroni.com',
-    description     = 'Scroll pHAT HD Driver',
+    description     = 'Inky pHAT Driver',
     long_description= open('README.txt').read() + open('CHANGELOG.txt').read(),
     license         = 'MIT',
-    keywords        = 'Raspberry Pi LED',
+    keywords        = 'Raspberry Pi e-paper display',
     url             = 'http://www.pimoroni.com',
     classifiers     = classifiers,
     py_modules      = [],
     packages        = ['inkyphat'],
     package_data    = {'inkyphat': ['inkyphat/fonts']},
     include_package_data = True,
-    install_requires= []
+    install_requires= ['spidev', 'RPi.GPIO']
 )

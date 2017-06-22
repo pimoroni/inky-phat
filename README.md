@@ -45,7 +45,7 @@ sudo python3 setup.py install
 ```
 (or `sudo python setup.py install` whichever your primary Python environment may be)
 
-In all cases you will have to enable the i2c bus.
+In all cases you will have to enable the SPI bus.
 
 ## Documentation & Support
 
