@@ -90,7 +90,7 @@ month_h = 9
 
 # Figure out where the month is in the spritesheet
 month_col = (now.month - 1) % months_cols
-month_row = (now.month - 1) / months_cols
+month_row = (now.month - 1) // months_cols
 
 # Convert that location to usable X/Y coordinates
 month_x = months_x + (month_col * month_w)
