@@ -4,19 +4,25 @@
 import datetime
 import time
 import calendar
+import icalendar
+import datetime
 
 from PIL import Image, ImageFont
 
 import inkyphat
 
-print("""Inky pHAT: Calendar
+print("""Inky pHAT: Calendar + iCal
 
 Draws a calendar for the current month to your Inky pHAT.
 
+Will also parse and a given .ics (iCal format) file and highlight days to indicate events.
+
 This example uses a sprite sheet of numbers and month names which are
-composited over the background in a couple of different ways.
+composited over the background.
 
 """)
+
+CALENDAR_FILE = "resources/test.ics"
 
 inkyphat.set_border(inkyphat.BLACK)
 #inkyphat.set_rotation(180)
@@ -35,8 +41,13 @@ inkyphat.set_image("resources/empty-backdrop.png")
 
 # Grab the current date, and prepare our calendar
 cal = calendar.Calendar()
-now = datetime.datetime.now()
+now = datetime.date.today()
 dates = cal.monthdatescalendar(now.year, now.month)
+
+ics = None
+
+if CALENDAR_FILE is not None:
+    ics = icalendar.Calendar.from_ical(open(CALENDAR_FILE).read())
 
 col_w = 20
 col_h = 13
@@ -50,6 +61,20 @@ cal_h = 1 + ((col_h + 1) * rows)
 cal_x = inkyphat.WIDTH - cal_w - 2
 cal_y = 2
 
+def has_event(dt):
+    if ics is None:
+        return False
+
+    for item in ics.walk():
+        if isinstance(item, icalendar.Event):
+            dtstart = item['DTSTART'].dt
+            dtend = item['DTEND'].dt
+            summary = item['SUMMARY']
+
+            if dt >= dtstart and dt < dtend:
+                return True
+
+    return False
 
 def print_digit(position, digit, colour):
     """Print a single digit using the sprite sheet.
@@ -150,15 +175,22 @@ for row, week in enumerate(dates):
         x = (col_w + 1) * col
         x += cal_x + 1
 
+        event = has_event(day)
+
         # Draw in the day name.
         # If it's the current day, invert the calendar background and text
-        if (day.day, day.month) == (now.day, now.month):
-            inkyphat.rectangle((x, y, x + col_w - 1, y + col_h - 1), fill=inkyphat.WHITE)
-            print_number((x+3, y+3), day.day, inkyphat.BLACK)
+        # If there's an event, paint the background in red with white text
+        if day == now:
+            inkyphat.rectangle((x, y, x + col_w - 1, y + col_h - 1), outline=inkyphat.BLACK if event else inkyphat.WHITE, fill=inkyphat.RED if event else inkyphat.WHITE)
+            print_number((x+3, y+3), day.day, inkyphat.WHITE if event else inkyphat.BLACK)
 
         # If it's any other day, paint in as white if it's in the current month
         # and red if it's in the previous or next month
         else:
+            # If there's an event on this day, paint the background in red
+            if event:
+                inkyphat.rectangle((x, y, x + col_w - 1, y + col_h - 1), outline=inkyphat.RED, fill=inkyphat.RED)
+
             print_number((x+3, y+3), day.day, inkyphat.WHITE if day.month == now.month else inkyphat.RED)
 
 
