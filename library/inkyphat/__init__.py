@@ -25,9 +25,8 @@ _panel = il91874.IL91874(resolution=(HEIGHT, WIDTH), h_flip=False, v_flip=True)
 _panel.set_palette((il91874.WHITE, il91874.BLACK, il91874.RED))
 
 # Export drawing methods into the module namespace
-for method in dir(_draw):
-    if not method.startswith("_"):
-        globals()[method] = getattr(_draw, method)
+for method in ["arc", "bitmap", "chord", "draw", "ellipse", "fill", "font", "fontmode", "getfont", "im", "ink", "line", "mode", "palette", "pieslice", "point", "polygon", "rectangle", "setfill", "setfont", "setink", "shape", "text", "textsize"]:
+    globals()[method] = getattr(_draw, method)
 
 # Selectively export image methods into the module namespace
 for method in ["paste", "putpixel", "getpixel"]:
@@ -42,7 +41,12 @@ def create_mask(source, mask=(WHITE, BLACK, RED)):
     """Create a transparency mask.
 
     Takes a paletized source image and converts it into a mask
-    permitting all the colours supported by InkyPhat."""
+    permitting all the colours supported by Inky pHAT (0, 1, 2)
+    or an optional list of allowed colours.
+
+    :param mask: Optional list of Inky pHAT colours to allow.
+
+    """
 
     # Create a new 1bpp (on/off) mask image
     mask_image = Image.new("1", source.size)
@@ -57,6 +61,11 @@ def create_mask(source, mask=(WHITE, BLACK, RED)):
     return mask_image
 
 def set_rotation(r):
+    """Set rotation.
+
+    :param r: Rotation in degrees, can be either 0 or 180
+
+    """
     if r == 180:
         _panel.h_flip = True
         _panel.v_flip = False
@@ -65,10 +74,20 @@ def set_rotation(r):
         _panel.v_flip = True
 
 def set_border(col):
+    """Set panel border colour.
+
+    :param col: Colour to set, should be one of WHITE, BLACK or RED.
+
+    """
+
     _panel.set_border(col)
 
 def set_image(image):
-    global _image
+    """Replace buffer with an image.
+
+    :param image: A valid PIL image, or an image filename
+
+    """
 
     if isinstance(image, str):
         image = Image.open(image)
@@ -76,12 +95,14 @@ def set_image(image):
     if hasattr(image, 'getpixel'):
         _image.paste(image)
 
-    del image
-
 def get_image():
+    """Get the image buffer."""
+
     return _image
 
 def show():
+    """Display the current buffy on Inky pHAT."""
+
     for y in range(WIDTH):
         for x in range(HEIGHT):
             _panel.set_pixel(x, y, _image.getpixel((y, x)))
