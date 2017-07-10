@@ -25,7 +25,7 @@ _panel = il91874.IL91874(resolution=(HEIGHT, WIDTH), h_flip=False, v_flip=True)
 _panel.set_palette((il91874.WHITE, il91874.BLACK, il91874.RED))
 
 # Export drawing methods into the module namespace
-for method in ["arc", "bitmap", "chord", "draw", "ellipse", "fill", "font", "fontmode", "getfont", "im", "ink", "line", "mode", "palette", "pieslice", "point", "polygon", "rectangle", "setfill", "setfont", "setink", "shape", "text", "textsize"]:
+for method in ["arc", "bitmap", "chord", "draw", "ellipse", "fill", "font", "fontmode", "getfont", "im", "ink", "line", "mode", "palette", "pieslice", "point", "polygon", "rectangle", "shape", "text", "textsize"]:
     globals()[method] = getattr(_draw, method)
 
 # Selectively export image methods into the module namespace
