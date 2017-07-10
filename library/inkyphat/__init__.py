@@ -25,7 +25,7 @@ _panel = inky212x104.Inky212x104(resolution=(HEIGHT, WIDTH), h_flip=False, v_fli
 _panel.set_palette((inky212x104.WHITE, inky212x104.BLACK, inky212x104.RED))
 
 # Export drawing methods into the module namespace
-for method in ["arc", "bitmap", "chord", "draw", "ellipse", "fill", "font", "fontmode", "getfont", "im", "ink", "line", "mode", "palette", "pieslice", "point", "polygon", "rectangle", "setfill", "setfont", "setink", "shape", "text", "textsize"]:
+for method in ["arc", "bitmap", "chord", "draw", "ellipse", "fill", "font", "fontmode", "getfont", "im", "ink", "line", "mode", "palette", "pieslice", "point", "polygon", "rectangle", "shape", "text", "textsize"]:
     globals()[method] = getattr(_draw, method)
 
 # Selectively export image methods into the module namespace
