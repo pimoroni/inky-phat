@@ -53,9 +53,9 @@ WHITE = 0
 BLACK = 1
 RED = 2
 
-class IL91874:
+class Inky212x104:
 
-    def __init__(self, resolution=(264, 176), cs_pin=0, dc_pin=22, reset_pin=27, busy_pin=17, h_flip=False, v_flip=False):
+    def __init__(self, resolution=(104, 212), cs_pin=0, dc_pin=22, reset_pin=27, busy_pin=17, h_flip=False, v_flip=False):
         self.palette = (WHITE, BLACK, RED)
         self.resolution = resolution
         self.width, self.height = resolution
