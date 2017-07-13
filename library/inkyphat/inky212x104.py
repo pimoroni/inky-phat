@@ -4,6 +4,7 @@
 
 import sys
 import time
+import atexit
 
 try:
     import spidev
@@ -69,6 +70,15 @@ class Inky212x104:
         self.h_flip = h_flip
         self.v_flip = v_flip
 
+        self.update_x1 = 0
+        self.update_x2 = self.width
+        self.update_y1 = 0
+        self.update_y2 = self.height
+
+        self.partial_mode = False
+        self.partial_config = []
+        self.border = 0b00000000
+
         GPIO.setup(self.dc_pin, GPIO.OUT, initial=GPIO.LOW)
         GPIO.setup(self.reset_pin, GPIO.OUT, initial=GPIO.HIGH)
         GPIO.setup(self.busy_pin, GPIO.IN)
@@ -76,6 +86,19 @@ class Inky212x104:
         self._spi = spidev.SpiDev()
         self._spi.open(0, self.cs_pin)
 
+        atexit.register(self._display_exit)
+
+    def _display_exit(self): 
+        print("Shutting down display, please wait...")
+        self._display_fini()
+
+    def _display_fini(self):
+        self._busy_wait()
+        self._send_command(_VCOM_DATA_INTERVAL_SETTING, [0x00])
+        self._send_command(_POWER_SETTING, [0x02, 0x00, 0x00, 0x00])
+        self._send_command(_POWER_OFF)
+ 
+    def _display_init(self):
         self.reset()
 
         self._busy_wait()    # wait for driver to be ready to talk
@@ -87,30 +110,27 @@ class Inky212x104:
         self._busy_wait()    # wait for driver to be ready to talk
 
         self._send_command(_PANEL_SETTING, [0b11001111])
-        self._send_command(_VCOM_DATA_INTERVAL_SETTING, [0b00000111])
+        self._send_command(_VCOM_DATA_INTERVAL_SETTING, [0b00000111 | self.border]) # Set border to white by default
 
         self._send_command(_OSCILLATOR_CONTROL, [0x29])
         self._send_command(_RESOLUTION_SETTING, [0x68, 0x00, 0xD4])
         self._send_command(_VCOM_DC_SETTING, [0x0A])
-        self._send_command(0x20, [0x06, 0x06, 0x06, 0x0A, 0x0A, 0x14, 0x06, 0x06, 0x06, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])
-        self._send_command(0x21, [0x06, 0x46, 0x06, 0x8a, 0x4a, 0x14, 0x86, 0x06, 0x06, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])
-        self._send_command(0x22, [0x86, 0x06, 0x06, 0x8a, 0x4a, 0x14, 0x06, 0x46, 0x06, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])
-        self._send_command(0x23, [0x86, 0x06, 0x06, 0x8a, 0x4a, 0x14, 0x06, 0x46, 0x06, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])
-        self._send_command(0x24, [0x86, 0x06, 0x06, 0x8a, 0x4a, 0x14, 0x06, 0x46, 0x06, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])
-        self._send_command(0x25, [0x18, 0x18, 0x02, 0x1e, 0x1e, 0x02, 0x04, 0x28, 0x05, 0x05, 0x1e, 0x02, 0x04, 0x02, 0x01])
-        self._send_command(0x26, [0x98, 0x98, 0x02, 0x5e, 0x5e, 0x02, 0x84, 0x68, 0x05, 0x45, 0x5e, 0x02, 0x44, 0x42, 0x01])
-        self._send_command(0x27, [0x18, 0x18, 0x02, 0x1e, 0x1e, 0x02, 0x04, 0x28, 0x05, 0x05, 0x1e, 0x02, 0x04, 0x02, 0x01])
 
-        self.clear_partial_mode()
+        if self.partial_mode:
+            self._send_command(_PARTIAL_CONFIG, self.partial_config)
+            self._send_command(_PARTIAL_ENTER)
+        else:
+            self._send_command(_PARTIAL_EXIT)
 
     def clear_partial_mode(self):
+        self.partial_mode = False
         self.update_x1 = 0
         self.update_x2 = self.width
         self.update_y1 = 0
         self.update_y2 = self.height
-        self._send_command(_PARTIAL_EXIT)
 
     def set_partial_mode(self, vr_st, vr_ed, hr_st, hr_ed):
+        self.partial_mode = True
         self.update_x1 = (hr_st // 8) * 8 # Snap update region to byte boundary
         self.update_x2 = (hr_ed // 8) * 8
         self.update_y1 = vr_st
@@ -137,7 +157,7 @@ class Inky212x104:
         # vr_st - vr_ed = 0 - 212 - Actually horizontal on Inky pHAT
         # hr_st - hr_ed = 0 - 12 - Actually vertical on Inky pHAT in 13 slices of 8 vertical pixels
 
-        self._send_command(_PARTIAL_CONFIG, [
+        self.partial_config = [
                                                      # D7   D6   D5   D4   D3   D2   D1   D0
             0b00000000 | (hr_st & 0b11111) << 3,     #    HRST[7:3]             0    0    0
             0b00000111 | (hr_ed & 0b11111) << 3,     #    HRED[7:3]             1    1    1
@@ -146,9 +166,7 @@ class Inky212x104:
             0b00000000 | (vr_ed & 0b100000000) >> 8, # -    -    -    -    -    -    -   VRED[8]
             0b00000000 | (vr_ed & 0b11111111),       #                VRED[7:0]
             0b00000001,                              # -    -    -    -    -    -    -   PT_SCAN
-        ])
-
-        self._send_command(_PARTIAL_ENTER)
+        ]
 
         # HRST: Horizontal start channel bank: 00h to 13h (0 to 19)
         # HRED: Horizontal end channel bank: 00h to 13h (0 to 19), HRED must be greater than HRST
@@ -157,23 +175,23 @@ class Inky212x104:
         # PT_SCAN: 0 = Only in partial window, 1 = inside and outside of partial window
 
     def set_border(self, border):
-        cmd = 0b00000111
-
         if border in self.palette:
             c = self.palette[border]
             if c == BLACK:
-                cmd |= 0b11000000
+                self.border = 0b11000000
             if c == RED:
-                cmd |= 0b01000000
+                self.border = 0b01000000
             if c == WHITE:
-                cmd |= 0b10000000
-
-        self._send_command(_VCOM_DATA_INTERVAL_SETTING, [cmd])
+                self.border = 0b10000000
+        else:
+            self.border = 0b00000000
 
     def set_palette(self, palette):
         self.palette = palette
 
     def update(self):
+        self._display_init()
+
         x1, x2 = self.update_x1, self.update_x2
         y1, y2 = self.update_y1, self.update_y2
 
@@ -185,10 +203,8 @@ class Inky212x104:
         if self.h_flip:
             region = numpy.flipud(region)
 
-
         buf_red = numpy.packbits(numpy.where(region == RED, 1, 0)).tolist()
         buf_black = numpy.packbits(numpy.where(region == BLACK, 1, 0)).tolist()
-
 
         # start black data transmission
         self._send_command(_DATA_START_TRANSMISSION_1)
@@ -199,7 +215,8 @@ class Inky212x104:
         self._send_data(buf_red)
 
         self._send_command(_DISPLAY_REFRESH)
-        self._busy_wait()
+
+        self._display_fini()
 
     def set_pixel(self, x, y, v):
         if v in self.palette:
