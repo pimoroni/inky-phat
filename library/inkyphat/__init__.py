@@ -38,7 +38,7 @@ def set_partial_mode(x1,x2,y1,y2):
 clear_partial_mode = _panel.clear_partial_mode
 
 def clear():
-    _image.paste(Image.new('P', (WIDTH, hEIGHT)))
+    _image.paste(Image.new('P', (WIDTH, HEIGHT)))
 
 def create_mask(source, mask=(WHITE, BLACK, RED)):
     """Create a transparency mask.
