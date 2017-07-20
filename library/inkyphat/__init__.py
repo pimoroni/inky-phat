@@ -85,10 +85,18 @@ def set_border(col):
 
     _panel.set_border(col)
 
-def set_image(image):
+def set_image(image, colswap=None):
     """Replace buffer with an image.
 
+    The colswap argument can be either a dictionary of source (keys) and target (values),
+    or a simple list where the target colour (0 = White, 1 = Black, 2 = Red) is the index.
+
+    A colswap of [0, 1, 2], for example, will have no effect on a properly prepared image.
+    A colswap of [1, 0, 2] would swap Black and White.
+    This is equivalent to {0:1, 1:0, 2:2}
+
     :param image: A valid PIL image, or an image filename
+    :param colswap: (optional) determine how colours should be swapped/mapped
 
     """
 
@@ -96,6 +104,27 @@ def set_image(image):
         image = Image.open(image)
 
     if hasattr(image, 'getpixel'):
+
+        if isinstance(colswap,list):
+            w, h = image.size
+            for x in range(w):
+                for y in range(h):
+                    p = image.getpixel((x, y))
+                    try:
+                        p = colswap.index(p)
+                        image.putpixel((x, y), p)
+                    except ValueError:
+                        continue
+
+        if isinstance(colswap,dict):
+            w, h = image.size
+            for x in range(w):
+                for y in range(h):
+                    p = image.getpixel((x, y))
+                    if p in colswap.keys():
+                        p = colswap[p]
+                        image.putpixel((x, y), p)
+            
         _image.paste(image)
 
 def get_image():
