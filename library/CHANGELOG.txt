@@ -1,7 +1,7 @@
-0.0.3
+0.1.0
 -----
 
-* Added support for new e-paper display
+* Added support for new display on Inky pHAT v2
 
 0.0.2
 -----
