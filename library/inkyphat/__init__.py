@@ -7,7 +7,7 @@ except ImportError:
     exit("This script requires the pillow module\nInstall with: sudo pip install pillow")
 
 
-__version__ = '0.0.2'
+__version__ = '0.0.3'
 
 WHITE = 0
 BLACK = 1
@@ -31,6 +31,9 @@ for method in ["arc", "bitmap", "chord", "draw", "ellipse", "fill", "font", "fon
 # Selectively export image methods into the module namespace
 for method in ["paste", "putpixel", "getpixel"]:
     globals()[method] = getattr(_image, method)
+
+def get_version():
+    return _panel.inky_version
 
 def set_partial_mode(x1,x2,y1,y2):
     _panel.set_partial_mode(y1,y2,x1,x2)
@@ -124,7 +127,7 @@ def set_image(image, colswap=None):
                     if p in colswap.keys():
                         p = colswap[p]
                         image.putpixel((x, y), p)
-            
+
         _image.paste(image)
 
 def get_image():

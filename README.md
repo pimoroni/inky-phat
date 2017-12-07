@@ -1,6 +1,8 @@
 ![Inky pHAT](inky-phat-logo.png)
 http://shop.pimoroni.com/products/inky-phat
 
+**Note** that Inky pHAT uses a new display now (as of early December 2017), and **requires an updated library**. This new library automagically detects the display version, so should work interchangeably with the old and new displays.
+
 ## Installing
 
 ### Full install (recommended):

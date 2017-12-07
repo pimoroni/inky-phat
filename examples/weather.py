@@ -14,6 +14,7 @@ except ImportError:
 
 import inkyphat
 
+inkyphat.set_border(inkyphat.BLACK)
 
 CITY = "Sheffield"
 COUNTRYCODE = "GB"
