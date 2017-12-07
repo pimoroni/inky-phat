@@ -9,6 +9,10 @@ import inkyphat
 
 print("""Inky pHAT: Hello... my name is:
 
+Use Inky pHAT as a personalised name badge!
+
+Usage: {} <"your name">
+
 """)
 
 #inkyphat.set_rotation(180)
