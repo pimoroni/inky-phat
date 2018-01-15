@@ -132,7 +132,7 @@ class Inky212x104:
         self._display_fini()
 
     def _v2_fini(self):
-        GPIO.cleanup()
+        pass
 
     def _v2_update(self, buf_black, buf_red):
         self._send_command(0x44, [0x00, 0x0c]) # Set RAM X address

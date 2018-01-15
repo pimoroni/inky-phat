@@ -1,3 +1,9 @@
+inkyphat (0.1.1) stable; urgency=low
+
+  * Removed GPIO.cleanup call for Inky pHAT v2, so subsequent display updates will work
+
+ -- Phil Howard <phil@pimoroni.com>  Thu, 07 Dec 2017 00:00:00 +0000
+
 inkyphat (0.1.0) stable; urgency=low
 
   * Added support for new display on Inky pHAT v2

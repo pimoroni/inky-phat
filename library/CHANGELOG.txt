@@ -1,3 +1,8 @@
+0.1.1
+-----
+
+* Removed GPIO.cleanup call for Inky pHAT v2, so subsequent display updates will work
+
 0.1.0
 -----
 
