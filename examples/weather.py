@@ -14,6 +14,13 @@ except ImportError:
 
 import inkyphat
 
+
+print("""Inky pHAT: Weather
+
+Displays weather information for a given location. The default location is Sheffield-on-Sea.
+
+""")
+
 inkyphat.set_border(inkyphat.BLACK)
 
 CITY = "Sheffield"
