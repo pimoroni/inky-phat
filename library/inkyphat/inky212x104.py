@@ -177,7 +177,7 @@ class Inky212x104:
 #       A     B     C     D   |
         16,    4,    4,    4,     4,  # 0 Flash
         16,    4,    4,    4,     4,  # 1 clear
-        8,    8,    8,    8,    8,  # 2 bring in the black
+        4,    8,    8,    16,    16,  # 2 bring in the black
         0,    0,    0,    0,     0, # 3 time for red
         0,    0,    0,    0,     0,  # 4 final black sharpen phase
         0,    0,    0,    0,     0,  # 4
