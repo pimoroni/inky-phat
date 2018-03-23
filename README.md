@@ -26,15 +26,13 @@ If you choose to download examples you'll find them in `/home/pi/Pimoroni/inkyph
 #### Library install for Python 3:
 
 ```bash
-sudo apt-get install python3-pip python3-dev
-sudo pip3 install inkyphat
+sudo apt-get install python3-inkyphat
 ```
 
 #### Library install for Python 2:
 
 ```bash
-sudo apt-get install python-pip python-dev
-sudo pip install inkyphat
+sudo apt-get install python-inkyphat
 ```
 
 ### Development:
