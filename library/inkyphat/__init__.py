@@ -32,6 +32,12 @@ for method in ["arc", "bitmap", "chord", "draw", "ellipse", "fill", "font", "fon
 for method in ["paste", "putpixel", "getpixel"]:
     globals()[method] = getattr(_image, method)
 
+def set_version(version):
+     return _panel.set_version(version)
+
+def set_colour(colour):
+    return _panel.set_colour(colour)
+
 def get_version():
     return _panel.inky_version
 
