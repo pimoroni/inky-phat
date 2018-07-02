@@ -12,6 +12,7 @@ __version__ = '0.1.1'
 WHITE = 0
 BLACK = 1
 RED = 2
+YELLOW = 2
 
 WIDTH = 212
 HEIGHT = 104

@@ -60,12 +60,13 @@ _POWER_SAVE = 0xe3
 WHITE = 0
 BLACK = 1
 RED = 2
+YELLOW = 2
 
 class Inky212x104:
 
     def __init__(self, resolution=(104, 212), cs_pin=CS0_PIN, dc_pin=DC_PIN, reset_pin=RESET_PIN, busy_pin=BUSY_PIN, h_flip=False, v_flip=False):
         self.inky_version = 2
-        self.inky_colour = 'red'
+        self.inky_colour = None
         self.resolution = resolution
         self.width, self.height = resolution
 
@@ -113,30 +114,27 @@ class Inky212x104:
         atexit.register(self._display_exit)
 
     def set_colour(self, colour):
-        if colour not in ('red', 'black', 'yellow'):
-            raise ValueError("Colour {} is not valid!".format(colour))
-
         if self.inky_version == 1:
             raise ValueError("V1 is only available in Red")
+
+        if colour not in ('red', 'black', 'yellow'):
+            raise ValueError("Colour {} is not valid!".format(colour))
 
         self.inky_colour = colour
 
         self._display_update = self._v2_update_yellow if self.inky_colour == 'yellow' else self._v2_update
 
-    def set_version(self, version, colour='red'):
+    def set_version(self, version):
         if version not in (1, 2):
             raise ValueError("Version {} is not valid!".format(version))
 
-	if colour not in ('red', 'black', 'yellow'):
-            raise ValueError("Colour {} is not valid!".format(colour))
-
         self.inky_version = version
-        self.inky_colour = colour
 
         if version == 1:
             self._display_init = self._v1_init
             self._display_update = self._v1_update
             self._display_fini = self._v1_fini
+            self.inky_colour = 'red'
             return
 
         if version == 2:
@@ -429,6 +427,9 @@ class Inky212x104:
         self.palette = palette
 
     def update(self):
+        if self.inky_colour is None:
+            raise RuntimeError("You must specify which colour of Inky pHAT you're using: inkyphat.set_colour('red', 'black' or 'yellow')")
+
         self._display_init()
 
         x1, x2 = self.update_x1, self.update_x2
