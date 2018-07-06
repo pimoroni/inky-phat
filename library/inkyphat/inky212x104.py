@@ -121,8 +121,12 @@ class Inky212x104:
             raise ValueError("Colour {} is not valid!".format(colour))
 
         self.inky_colour = colour
+        self._display_update = self._v2_update
 
-        self._display_update = self._v2_update_yellow if self.inky_colour == 'yellow' else self._v2_update
+        if self.inky_colour == 'yellow':
+            self._display_update = self._v2_update_yellow
+        if self.inky_colour == 'black':
+            self._display_update = self._v2_update_black
 
     def set_version(self, version):
         if version not in (1, 2):
@@ -148,6 +152,78 @@ class Inky212x104:
 
     def _v2_fini(self):
         pass
+
+    def _v2_update_black(self, buf_black, buf_red):
+        self._send_command(0x44, [0x00, 0x0c]) # Set RAM X address
+        self._send_command(0x45, [0x00, 0x00, 0xD3, 0x00, 0x00]) # Set RAM Y address + erroneous extra byte?
+
+        self._send_command(0x04, [0x2d, 0xb2, 0x22]) # Source driving voltage control
+
+        self._send_command(0x2c, 0x3c) # VCOM register, 0x3c = -1.5v?
+
+        # Border control
+        self._send_command(0x3c, 0x00)
+        if self.border == 0b11000000:
+            self._send_command(0x3c, 0x00)
+        elif self.border == 0b01000000:
+            self._send_command(0x3c, 0x33)
+        elif self.border == 0b10000000:
+            self._send_command(0x3c, 0xFF)
+
+        VSS  = 0b00
+        VSH1 = 0b01
+        VSL  = 0b10
+        VSH2 = 0b11
+        def l(a, b, c, d):
+            return (a << 6) | (b << 4) | (c << 2) | d
+
+        ## Send LUTs
+        self._send_command(0x32, [
+        # Phase 0     Phase 1     Phase 2     Phase 3     Phase 4     Phase 5     Phase 6
+        # A B C D     A B C D     A B C D     A B C D     A B C D     A B C D     A B C D
+        0b01001000, 0b10100000, 0b00010000, 0b00010000, 0b00010011, 0b00000000, 0b00000000,# 0b00000000, # LUT0 - Black
+        0b01001000, 0b10100000, 0b10000000, 0b00000000, 0b00000011, 0b00000000, 0b00000000,# 0b00000000, # LUTT1 - White
+        0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000,# 0b00000000, # IGNORE
+        0b01001000, 0b10100101, 0b00000000, 0b10111011, 0b00000000, 0b00000000, 0b00000000,# 0b00000000, # LUT3 - Red
+        0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000,# 0b00000000, # LUT4 - VCOM
+        #0xA5, 0x89, 0x10, 0x10, 0x00, 0x00, 0x00, # LUT0 - Black
+        #0xA5, 0x19, 0x80, 0x00, 0x00, 0x00, 0x00, # LUT1 - White
+        #0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, # LUT2 - Red - NADA!
+        #0xA5, 0xA9, 0x9B, 0x9B, 0x00, 0x00, 0x00, # LUT3 - Red
+        #0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, # LUT4 - VCOM
+
+#       Duration              |  Repeat
+#       A     B     C     D   |
+        16,    4,    4,    4,     4,  # 0 Flash
+        16,    4,    4,    4,     4,  # 1 clear
+        4,    8,    8,    16,    16,  # 2 bring in the black
+        0,    0,    0,    0,     0, # 3 time for red
+        0,    0,    0,    0,     0,  # 4 final black sharpen phase
+        0,    0,    0,    0,     0,  # 4
+        0,    0,    0,    0,     0,  # 5
+        0,    0,    0,    0,     0,  # 6
+        0,    0,    0,    0,     0   # 7
+        ])
+
+        self._send_command(0x44, [0x00, 0x0c]) # Set RAM X address
+        self._send_command(0x45, [0x00, 0x00, 0xd3, 0x00]) # Set RAM Y address
+        self._send_command(0x4e, 0x00) # Set RAM X address counter
+        self._send_command(0x4f, [0x00, 0x00]) # Set RAM Y address counter
+
+        self._send_command(0x24, buf_black)
+
+        self._send_command(0x44, [0x00, 0x0c]) # Set RAM X address
+        self._send_command(0x45, [0x00, 0x00, 0xd3, 0x00]) # Set RAM Y address
+        self._send_command(0x4e, 0x00) # Set RAM X address counter
+        self._send_command(0x4f, [0x00, 0x00]) # Set RAM Y address counter
+
+        self._send_command(0x26, buf_red)
+
+
+        self._send_command(0x22, 0xc7) # Display update setting
+        self._send_command(0x20) # Display update activate
+        time.sleep(0.05)
+        self._busy_wait()
 
     def _v2_update_yellow(self, buf_black, buf_yellow):
         self._send_command(0x44, [0x00, 0x0c]) # Set RAM X address
