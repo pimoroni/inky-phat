@@ -1,9 +1,18 @@
 #!/usr/bin/env python
 
 from PIL import ImageFont
+import sys
 
 import inkyphat
 
+if len(sys.argv) < 2:
+    print("""Usage: {} <colour>
+       Valid colours: red, yellow, black
+""".format(sys.argv[0]))
+    sys.exit(0)
+
+colour = sys.argv[1]
+inkyphat.set_colour(colour)
 
 font_file = inkyphat.fonts.FredokaOne
 inkyphat.arc((0, 0, 212, 104), 0, 180, 2)
