@@ -10,17 +10,24 @@ print("""Inky pHAT: Clean
 Displays solid blocks of red, black, and white to clean the Inky pHAT
 display of any screen burn.
 
-Usage: {} <number of cycles>
+""".format(sys.argv[0]))
 
-""")
+if len(sys.argv) < 2:
+    print("""Usage: {} <colour> <number of cycles>
+       Valid colours: red, yellow, black
+""".format(sys.argv[0]))
+    sys.exit(0)
 
-if len(sys.argv) > 1:
-    cycles = int(sys.argv[1])
+colour = sys.argv[1].lower()
+inkyphat.set_colour(colour)
+
+if len(sys.argv) > 2:
+    cycles = int(sys.argv[2])
 else:
     cycles = 3
 
 colours = (inkyphat.RED, inkyphat.BLACK, inkyphat.WHITE)
-colour_names= ("red", "black", "white")
+colour_names= (colour, "black", "white")
 
 for i in range(cycles):
     print("Cleaning cycle %i\n" % (i + 1))
