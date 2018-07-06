@@ -1,3 +1,9 @@
+inkyphat (1.0.0) stable; urgency=low
+
+  * Feature: Added support for Black/Yellow and Black
+
+ -- Phil Howard <phil@pimoroni.com>  Fri, 06 Jul 2018 00:00:00 +0000
+
 inkyphat (0.1.1) stable; urgency=low
 
   * Removed GPIO.cleanup call for Inky pHAT v2, so subsequent display updates will work
