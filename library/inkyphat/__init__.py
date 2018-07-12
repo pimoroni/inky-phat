@@ -34,9 +34,26 @@ for method in ["paste", "putpixel", "getpixel"]:
     globals()[method] = getattr(_image, method)
 
 def set_version(version):
-     return _panel.set_version(version)
+    """Set the Inky pHAT version.
+
+    Generally you shouldn't need to do this. Most likely you have a v2, and the version is auto-detected.
+
+    :param version: Should be either 1 (for original) or 2 (for newer)
+
+    """
+    return _panel.set_version(version)
 
 def set_colour(colour):
+    """Set the Inky pHAT colour.
+
+    You must call this before trying to display an image on Inky pHAT.
+
+    Setting the colour determines whether you have a Red/Black, Yellow/Black or Black & White Inky pHAT,
+    and will ensure the correct update and display settings for each combination.
+
+    :param colour: Should be one of 'red', 'black' or 'yellow'
+
+    """
     return _panel.set_colour(colour)
 
 def get_version():

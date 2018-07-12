@@ -41,6 +41,16 @@ At A Glance
 .. automethod:: inkyphat._draw.polygon
 .. automethod:: inkyphat._draw.text
 
+Set The Version
+---------------
+
+.. autofunction:: inkyphat.set_version
+
+Set The Colour
+--------------
+
+.. autofunction:: inkyphat.set_colour
+
 Paste An Image
 --------------
 
