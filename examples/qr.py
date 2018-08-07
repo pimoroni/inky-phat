@@ -9,10 +9,7 @@ print("""Inky pHAT: QR Code
 
 Display a QR Code on Inky pHAT!
 
-Usage: {} <your message>
-
-""".format(sys.argv[0]))
-
+Usage: {} <colour> <your message>""".format(sys.argv[0]))
 
 # Max length is 152
 text = """In the old #BILGETANK we'll keep you in the know,
@@ -20,8 +17,17 @@ In the old #BILGETANK we'll fix your techie woes.
 
 https://www.youtube.com/pimoroniltd"""
 
-if len(sys.argv) > 1:
+if len(sys.argv) < 2:
+    print("""Valid colours for v2 are: red, yellow or black
+Inky pHAT v1 is only available in red.""".format(sys.argv[0]))
+    sys.exit(1)
+
+colour = sys.argv[1]
+inkyphat.set_colour(colour)
+
+if len(sys.argv) > 2:
     text = sys.argv[1]
+
 
 class InkyQR(qrcode.image.base.BaseImage):
     def new_image(self, **kwargs):
@@ -35,7 +41,7 @@ class InkyQR(qrcode.image.base.BaseImage):
             self.offset_x = (inkyphat.WIDTH // 2) - (self.pixel_size // 2)
         if self.offset_y is None:
             self.offset_y = (inkyphat.HEIGHT // 2) - (self.pixel_size // 2)
-        
+
         box = (self.offset_x, self.offset_y, self.offset_x + self.pixel_size - 1, self.offset_y + self.pixel_size - 1)
         inkyphat.rectangle(box, fill=inkyphat.WHITE)
 
@@ -54,10 +60,10 @@ class InkyQR(qrcode.image.base.BaseImage):
 inkyphat.set_image("resources/empty-backdrop.png")
 
 qr = qrcode.QRCode(
-	version=1,
-	box_size=2,
-	border=2,
-        image_factory=InkyQR
+    version=1,
+    box_size=2,
+    border=2,
+    image_factory=InkyQR
 )
 
 qr.add_data(text)
