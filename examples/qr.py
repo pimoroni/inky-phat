@@ -26,7 +26,7 @@ colour = sys.argv[1]
 inkyphat.set_colour(colour)
 
 if len(sys.argv) > 2:
-    text = sys.argv[1]
+    text = sys.argv[2]
 
 
 class InkyQR(qrcode.image.base.BaseImage):
