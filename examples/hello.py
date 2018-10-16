@@ -29,8 +29,10 @@ try:
     inkyphat.set_colour(colour)
 except ValueError:
     print('Invalid colour "{}" for V{}\n'.format(sys.argv[2], inkyphat.get_version()))
-    print(USAGE)
-    sys.exit(1)
+    if inkyphat.get_version() == 2:
+        print(USAGE)
+        sys.exit(1)
+    print('Defaulting to "red"')
 
 # Show the backdrop image
 

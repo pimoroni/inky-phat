@@ -23,7 +23,9 @@ try:
     inkyphat.set_colour(colour)
 except ValueError:
     print('Invalid colour "{}" for V{}\n'.format(colour, inkyphat.get_version()))
-    sys.exit(1)
+    if inkyphat.get_version() == 2:
+        sys.exit(1)
+    print('Defaulting to "red"')
 
 inkyphat.set_border(inkyphat.BLACK)
 
