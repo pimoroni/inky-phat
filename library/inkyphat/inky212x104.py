@@ -114,7 +114,9 @@ class Inky212x104:
         atexit.register(self._display_exit)
 
     def set_colour(self, colour):
-        if self.inky_version == 1:
+        colour = colour.lower()
+
+        if self.inky_version == 1 and not colour == 'red':
             raise ValueError("V1 is only available in Red")
 
         if colour not in ('red', 'black', 'yellow'):

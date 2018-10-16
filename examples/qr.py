@@ -23,7 +23,12 @@ Inky pHAT v1 is only available in red.""".format(sys.argv[0]))
     sys.exit(1)
 
 colour = sys.argv[1]
-inkyphat.set_colour(colour)
+
+try:
+    inkyphat.set_colour(colour)
+except ValueError:
+    print('Invalid colour "{}" for V{}\n'.format(colour, inkyphat.get_version()))
+    sys.exit(1)
 
 if len(sys.argv) > 2:
     text = sys.argv[2]

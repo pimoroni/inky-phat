@@ -25,7 +25,12 @@ if len(sys.argv) < 2:
     sys.exit(0)
 
 colour = sys.argv[1]
-inkyphat.set_colour(colour)
+
+try:
+    inkyphat.set_colour(colour)
+except ValueError:
+    print('Invalid colour "{}" for V{}\n'.format(colour, inkyphat.get_version()))
+    sys.exit(1)
 
 CALENDAR_FILE = "resources/test.ics"
 
