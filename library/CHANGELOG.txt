@@ -1,3 +1,8 @@
+1.0.1
+-----
+
+* BugFix: Fixed colour support issues with V1 Inky pHAT
+
 1.0.0
 -----
 
