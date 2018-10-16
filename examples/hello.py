@@ -19,7 +19,7 @@ USAGE = """Usage: {} "<your name>" <colour>
        Inky pHAT v1 is only available in red.
 """.format(sys.argv[0])
 
-if len(sys.argv) < 3 and inkyphat.get_version() == 2:
+if len(sys.argv) < 3:
     print(USAGE)
     sys.exit(1)
 
